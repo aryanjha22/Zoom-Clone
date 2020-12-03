@@ -3,35 +3,37 @@ const videoGrid = document.getElementById('video-grid')
 const myVideo = document.createElement('video')
 myVideo.muted = true
 
+//peer initialised
 var peer = new Peer(undefined, {
     path: '/peerjs',
     host: '/',
-    port: '443'
+    port: '443'    //specified port
 }) 
 
+//for intitialisng video and audio
 let myVideoStream 
 navigator.mediaDevices.getUserMedia({
     video: true,
     audio: true
-}).then(stream => {
+}).then(stream => {                   //stream audio and video
     
     myVideoStream = stream
     addVideoStream(myVideo, stream)
 
-    peer.on('call', call => {
+    peer.on('call', call => {                      //for answering the p2p connection after calling
         call.answer(stream)
-        const video = document.createElement('video')
+        const video = document.createElement('video')         //creating a new video element for the receiver
         call.on('stream', userVideoStream => {
             addVideoStream(video, userVideoStream)
         })
     })
 
-    socket.on('user-connected', (userId) => {
+    socket.on('user-connected', (userId) => {               //passing the userid of the connected user
         connectToNewUser(userId, stream)
     })
 
     //Jquery
-    let text = $('input')
+    let text = $('input')              //for messages
 
     $('html').keydown((e) => {
         //enter key is 13
@@ -42,17 +44,19 @@ navigator.mediaDevices.getUserMedia({
         }
     })
 
+    //creating the message in bar
     socket.on('createMessage', message => {
         $('.messages').append(`<li class="message"><b>user</b><br/>${message}</li>`)
         scrollToBottom()
     })
 })
 
+//opening the peer
 peer.on('open', id => {
     socket.emit('join-room', ROOM_ID, id)
 })
 
-
+//function for a user joining and crating a video element
 const connectToNewUser = (userId, stream) =>{
     const call = peer.call(userId, stream)
     const video = document.createElement('video')
@@ -61,6 +65,7 @@ const connectToNewUser = (userId, stream) =>{
     })
 }
 
+//add the video in the stream
 const addVideoStream = (video, stream) => {
     video.srcObject = stream
     video.addEventListener('loadedmetadata', () => {
@@ -69,12 +74,13 @@ const addVideoStream = (video, stream) => {
     videoGrid.appendChild(video)
 }
 
+//function for scrolling the message
 const scrollToBottom = () => {
     let d = $('.main_chat_window')
     d.scrollTop(d.prop("scrollHeight"))
 }
 
-//Mute our Audio
+//Mute Audio
 const muteUnmute = () =>{
     const enabled = myVideoStream.getAudioTracks()[0].enabled
     if(enabled){
@@ -86,6 +92,7 @@ const muteUnmute = () =>{
     }
 }
 
+//changing state of the icon
 const setMuteButton = () => {
     const html = `
     <i class="fas fa-microphone"></i>
@@ -114,6 +121,7 @@ const playStop = () =>{
     }
 }
 
+//changing the state of the icon
 const setStopVideo = () => {
     const html = `
     <i class="fas fa-video"></i>
